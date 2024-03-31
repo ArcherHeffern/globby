@@ -7,15 +7,15 @@
 #ifndef _HASHMAP_
 #define _HASHMAP_
 
-int main() {
-    Hashmap *hm = hashmap_init();
-    Schema *schema;
-    Field *fields[2];
-    fields[0] = field_init("name", Str);
-    fields[1] = field_init("age", Int);
-    schema = schema_init("Archer", 2, fields);
-    print_schema(schema);
-}
+// int main() {
+//     Hashmap *hm = hashmap_init();
+//     Schema *schema;
+//     Field *fields[2];
+//     fields[0] = field_init("name", Str);
+//     fields[1] = field_init("age", Int);
+//     schema = schema_init("Archer", 2, fields);
+//     print_schema(schema);
+// }
 
 Hashmap* hashmap_init() {
     return malloc(sizeof(Hashmap));

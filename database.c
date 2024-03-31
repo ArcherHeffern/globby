@@ -1,13 +1,14 @@
 #include <stdio.h>
-#include "hashmap.h"
+#include <readline/readline.h>
+#include <readline/history.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/uio.h>
 #include <sys/types.h>
 #include <stdlib.h>
-#include <readline/readline.h>
-#include <readline/history.h>
 #include <string.h>
+#include "database.h"
+#include "hashmap.h"
 
 /*
 Protocol: list of entries: type (2 bits)
@@ -16,19 +17,21 @@ Protocol: list of entries: type (2 bits)
 #define EXT_SUCCESS 0
 #define EXT_ERR_OPEN 1
 #define BUFSIZE 1024
+#define INPUTBUFSIZE 64
 
 char* filename = NULL;
 Hashmap *hashmap = NULL;
 
-META_COMMAND_NOT_FOUND = "Meta command not found\n";
-OPEN_FILE_MSG = "Use .open to create a database\n";
+char *META_COMMAND_NOT_FOUND = "Meta command not found\n";
+char *OPEN_FILE_MSG = "Use .open to create a database\n";
 
 int main() {
-    char* line;
+    char buffer[INPUTBUFSIZE];
     while (1) {
-        line = readline("> ");
-        char** tokens = tokenize(line);
-        if (tokens == NULL) {
+        printf("> ");
+        fgets(buffer, INPUTBUFSIZE, stdin);
+        char** tokens = tokenize(buffer);
+        if (tokens[0] == NULL) {
             continue;
         }
         char* command = tokens[0];
@@ -52,7 +55,7 @@ void handle_metacommand(char* command, char** tokens) {
     } else if (strcmp(command, ".help") == 0) {
         print_help();
     } else {
-        printf(META_COMMAND_NOT_FOUND);
+        printf("%s", META_COMMAND_NOT_FOUND);
     }
 }
 
@@ -79,11 +82,12 @@ int open_database(char* db_name) {
 
         }
     }
+    // TODO
 }
 
 void handle_command(char* command, char** tokens) {
     if (filename == NULL) {
-        printf(OPEN_FILE_MSG);
+        printf("%s", OPEN_FILE_MSG);
         return;
     }
     if (strcmp(command, "CREATE")) {
@@ -105,5 +109,18 @@ void print_help() {
 }
 
 char** tokenize(char* line) {
-
+    int capacity = 4;
+    int size = 1;
+    char *del = " \n";
+    char **tokens = malloc(sizeof(char*)*capacity);
+    char* token;
+    tokens[0] = strtok(line, del);
+    while ((token = strtok(NULL, del)) != NULL) {
+        if (size == capacity) {
+            tokens = realloc(tokens, capacity*2*sizeof(char*));
+        }
+        tokens[size++] = token;
+    }
+    tokens[size] = 0;
+    return tokens;
 }
