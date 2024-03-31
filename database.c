@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "hashmap.h"
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/uio.h>
@@ -14,8 +15,10 @@ Protocol: list of entries: type (2 bits)
 
 #define EXT_SUCCESS 0
 #define EXT_ERR_OPEN 1
+#define BUFSIZE 1024
 
-char* FILENAME = NULL;
+char* filename = NULL;
+Hashmap *hashmap = NULL;
 
 META_COMMAND_NOT_FOUND = "Meta command not found\n";
 OPEN_FILE_MSG = "Use .open to create a database\n";
@@ -42,7 +45,9 @@ void handle_metacommand(char* command, char** tokens) {
         exit(EXT_SUCCESS);
     } else if (strcmp(command, ".open") == 0) {
         if (tokens[1] != NULL) {
-           FILENAME = tokens[1];
+           open_database(tokens[1]);
+        } else {
+            printf("Expected database name\n");
         }
     } else if (strcmp(command, ".help") == 0) {
         print_help();
@@ -52,17 +57,32 @@ void handle_metacommand(char* command, char** tokens) {
 }
 
 
-int open_database() {
+int open_database(char* db_name) {
+    filename = db_name;
+    hashmap = hashmap_init();
     // Store schemas: schema_name: schema_format + schema bit
-    int fd = open(FILENAME, O_RDONLY|O_CREAT);
+    char buffer[BUFSIZE];
+    int fd = open(filename, O_RDONLY|O_CREAT);
     if (fd <= 0) {
         perror("Open");
         exit(EXT_ERR_OPEN);
     }
+
+    int n_read;
+    while (1) {
+        if ((n_read = read(fd, buffer, 1)) <= 0) {
+            break;
+        }
+        if (buffer[0] == '0') {
+            // Schema
+        } else {
+
+        }
+    }
 }
 
 void handle_command(char* command, char** tokens) {
-    if (FILENAME == NULL) {
+    if (filename == NULL) {
         printf(OPEN_FILE_MSG);
         return;
     }

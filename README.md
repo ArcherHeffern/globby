@@ -16,3 +16,11 @@ datatype)+
 
 # Entry
 Payload
+
+Append only database
+
+<database> = <packet>*
+<packet> = <schema> | <entry>
+<schema> = "0" name_size (1 byte) name num_fields <schema_fields>+
+<schema_fields> = field_name_size field_name field_datatype
+<entry> = "1" field+
