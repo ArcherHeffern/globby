@@ -18,5 +18,5 @@ typedef struct hashmap {
 Hashmap* hashmap_init();
 void hashmap_free(Hashmap *hm);
 
-Schema* get(Hashmap *hashmap, char* key);
-void insert(Hashmap *hashmap, char* key, Schema* value);
+Schema* hashmap_get(Hashmap *hashmap, char* key);
+void hashmap_insert(Hashmap* hashmap, char* key, Schema *value) {

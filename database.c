@@ -1,6 +1,4 @@
 #include <stdio.h>
-#include <readline/readline.h>
-#include <readline/history.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/uio.h>
@@ -9,6 +7,7 @@
 #include <string.h>
 #include "database.h"
 #include "hashmap.h"
+#include "array.h"
 
 /*
 Protocol: list of entries: type (2 bits)
@@ -20,7 +19,8 @@ Protocol: list of entries: type (2 bits)
 #define INPUTBUFSIZE 64
 
 char* filename = NULL;
-Hashmap *hashmap = NULL;
+Hashmap *name_map = NULL;
+int num_map = NULL;
 
 char *META_COMMAND_NOT_FOUND = "Meta command not found\n";
 char *OPEN_FILE_MSG = "Use .open to create a database\n";
@@ -62,7 +62,8 @@ void handle_metacommand(char* command, char** tokens) {
 
 int open_database(char* db_name) {
     filename = db_name;
-    hashmap = hashmap_init();
+    name_map = hashmap_init();
+    num_map = int_array_init(8);
     // Store schemas: schema_name: schema_format + schema bit
     char buffer[BUFSIZE];
     int fd = open(filename, O_RDONLY|O_CREAT);
@@ -77,12 +78,14 @@ int open_database(char* db_name) {
             break;
         }
         if (buffer[0] == '0') {
-            // Schema
+            Schema *schema = parse_schema(fd);
+            int_array_insert(num_map, schema);
+            hashmap_insert(name_map, schema->name, schema);
         } else {
-
+            // Continue
         }
     }
-    // TODO
+    // Print Name and num map
 }
 
 void handle_command(char* command, char** tokens) {
@@ -117,7 +120,8 @@ char** tokenize(char* line) {
     tokens[0] = strtok(line, del);
     while ((token = strtok(NULL, del)) != NULL) {
         if (size == capacity) {
-            tokens = realloc(tokens, capacity*2*sizeof(char*));
+            capacity *= 2;
+            tokens = realloc(tokens, capacity*sizeof(char*));
         }
         tokens[size++] = token;
     }

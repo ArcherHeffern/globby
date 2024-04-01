@@ -24,3 +24,9 @@ Append only database
 <schema> = "0" name_size (1 byte) name num_fields <schema_fields>+
 <schema_fields> = field_name_size field_name field_datatype
 <entry> = "1" field+
+
+# Lesson
+// Bad? 
+*arr->array[arr->size++] = schema;
+// Good?
+// arr->array[arr->size++] = &schema;

@@ -41,7 +41,7 @@ void node_free(Node *node) {
     free(node);
 }
 
-Schema* get(Hashmap *hashmap, char* key) {
+Schema* hashmap_get(Hashmap *hashmap, char* key) {
     int i;
     for (i = 0; i < hashmap->size; i++) {
         if (strcmp(key, hashmap->hm[i]->key) == 0) {
@@ -51,7 +51,7 @@ Schema* get(Hashmap *hashmap, char* key) {
     return NULL;
 }
 
-void insert(Hashmap* hashmap, char* key, Schema *value) {
+void hashmap_insert(Hashmap* hashmap, char* key, Schema *value) {
     if (hashmap->size >= TABLESIZE) {
         printf("Hashmap full");
     }
