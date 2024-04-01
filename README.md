@@ -1,3 +1,7 @@
+# TODO: 
+- Endianess
+- to_bytes(), decode(), encode()
+
 # File Format
 Type: 1 byte 
 Body: Unknown

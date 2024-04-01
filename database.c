@@ -20,7 +20,7 @@ Protocol: list of entries: type (2 bits)
 
 char* filename = NULL;
 Hashmap *name_map = NULL;
-int num_map = NULL;
+IntArray *num_map = NULL;
 
 char *META_COMMAND_NOT_FOUND = "Meta command not found\n";
 char *OPEN_FILE_MSG = "Use .open to create a database\n";
@@ -73,19 +73,29 @@ int open_database(char* db_name) {
     }
 
     int n_read;
+    int schema_size;
+    Schema *schema;
     while (1) {
         if ((n_read = read(fd, buffer, 1)) <= 0) {
             break;
         }
-        if (buffer[0] == '0') {
-            Schema *schema = parse_schema(fd);
+        if (buffer[0] == 0) {
+            schema = parse_schema(fd);
             int_array_insert(num_map, schema);
             hashmap_insert(name_map, schema->name, schema);
         } else {
+            schema_size = int_array_get(num_map, buffer[0])->size;
+            lseek(fd, schema_size, SEEK_CUR);
             // Continue
         }
     }
     // Print Name and num map
+    int i;
+    for (i = 0; i < num_map->size; i++) {
+        schema = int_array_get(num_map, i);
+        print_schema(schema);
+    }
+    return 1;
 }
 
 void handle_command(char* command, char** tokens) {

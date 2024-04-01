@@ -6,6 +6,8 @@
 #include <sys/uio.h>
 #include "types.h"
 
+enum Type type_mapping[3] = {Bool, Int, Str};
+
 char* type_to_string(enum Type type) {
     switch (type) {
         case Bool:
@@ -69,10 +71,12 @@ Schema* parse_schema(int fd) {
     read(fd, buffer, 1);
     num_fields = (int)buffer[0];
 
-    fields = malloc(sizeof(Field) * num_fields);
+    fields = malloc(sizeof(Field*) * num_fields);
     for (i = 0; i < num_fields; i++) {
         name_len = read_str(fd, buffer, &field_name);
-        datatype = read(fd, buffer, 1);
+        printf("%s: Length: %d\n", field_name, name_len);
+        read(fd, buffer, 1);
+        datatype = type_mapping[buffer[0]];
         fields[i] = field_init(field_name, datatype);
     }
     return schema_init(name, num_fields, fields);
@@ -84,7 +88,7 @@ Schema* schema_init(char* name, int num_fields, Field **fields) {
     Schema *schema; 
     int size;
 
-    schema = malloc(sizeof(schema));
+    schema = malloc(sizeof(Schema));
     schema->name = name;
     schema->num_fields = num_fields;
     schema->fields = fields;
@@ -113,6 +117,7 @@ int read_str(int fd, char* buffer, char** str) {
     str_size = buffer[0];
     tmp_str = malloc(str_size + 1);
     read(fd, buffer, str_size);
+    buffer[str_size] = 0;
     strcpy(tmp_str, buffer);
     *str = tmp_str;
     return str_size;
