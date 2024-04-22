@@ -9,13 +9,13 @@ class Type(Enum):
     Str = 2
 
 with open(TESTFILE, "wb+") as f:
-    def write_num(num: int):
-        f.write(num.to_bytes())
+    def write_num(num: int, num_bytes: int):
+        f.write(int.to_bytes(num), num_bytes)
 
     def write_str(s: str):
         f.write(s.encode())
 
-    write_num(0) # Schema
+    write_num(0, 1) # Schema
     write_num(4) # Name size
     write_str("User")
     write_num(2) # num fields

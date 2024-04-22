@@ -109,15 +109,15 @@ void handle_command(char* command, char** tokens) {
 }
 
 void print_help() {
-    printf( "Metacommands: "
-            ".help                  Display help text"
-            ".exit                  exit program"
-            ""
-            "Commands:"
-            "CREATE <tablename> <fields>"
-            "READ <tablename> <id>"
-            "UPDATE <tablename> <id> <field> <new_value>"
-            "DELETE <tablename> <id>"
+    printf( "Metacommands: \n"
+            ".help                  Display help text\n"
+            ".exit                  exit program\n"
+            "\n"
+            "Commands:\n"
+            "CREATE <tablename> <fields>\n"
+            "READ <tablename> <id>\n"
+            "UPDATE <tablename> <id> <field> <new_value>\n"
+            "DELETE <tablename> <id>\n"
     );
 }
 
