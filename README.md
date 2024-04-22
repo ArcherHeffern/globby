@@ -1,15 +1,15 @@
-# TODO: 
-- Endianess
-- to_bytes(), decode(), encode()
+## Packets
+General format
 
-# File Format
-Type: 1 byte 
-Body: Unknown
+size (bytes)	| field 	| purpose	
+-- 				| --		| --
+1				| type 		| Set to either 1 or 2 to signify if field is a schema or entry
+1				| bsize		| Size of body in bytes (max 255)
+UNKNOWN			| body		| Body - Either Schema or Entry
 
 ## Schema
 size (bytes)	| field 	| purpose
 -- 				| -- 		| -- 
-1 				| type		| Set to either 1 or 2 to signify if field is a schema or entry
 NULL TERMINATED | sname		| Schema name
 4				| fnum		| Number of fields
 1				| dtype		| Type of a field - See Data Types Value Field Below
@@ -42,7 +42,7 @@ Append only database
 # Lessons
 1. Can't write individual bits unless batching multiple bit sized fields together - Then use bitwise operators to get single field
 2. Creating better documentation
-3. Python bit/byte operators (int.to_bytes, int.from_bytes, bytes, open(file, "rb")
+3. Python bit/byte operators (int.to_bytes, int.from_bytes, bytes, open(file, "rb"), str.encode(), bytes.decode() 
 4. Endianness
 5. C memory management
 ```c
