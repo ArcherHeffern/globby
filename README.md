@@ -1,6 +1,4 @@
 ## Packets
-General format
-
 size (bytes)	| field 	| purpose	
 -- 				| --		| --
 1				| type 		| Set to either 1 or 2 to signify if field is a schema or entry
@@ -13,7 +11,6 @@ size (bytes)	| field 	| purpose
 NULL TERMINATED | sname		| Schema name
 4				| fnum		| Number of fields
 1				| dtype		| Type of a field - See Data Types Value Field Below
-See Dtype		| dentry	| Value of a field - See Data Types Size Field Below
 NULL TERMINATED	| fname		| Field name
 
 ## Entry
@@ -27,8 +24,8 @@ Size (bytes)	| Value 	| Type 				| Meaning
 -- 				| -- 		| --				| --
 1				| 0x00		| NULL TERMINATOR	| Signifies there are no more fields for a schema
 1				| 0x01		| CHAR				| Character 
-4				| 0x10		| INT				| i32 Integer 
-NULL TERMINATED	| 0x11		| STRING			| Null terminated String 
+4				| 0x02		| INT				| i32 Integer 
+NULL TERMINATED	| 0x03		| STRING			| Null terminated String 
 
 ## Grammar
 Append only database

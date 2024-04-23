@@ -59,4 +59,12 @@ void hashmap_insert(Hashmap* hashmap, char* key, Schema *value) {
     hashmap->hm[hashmap->size++] = node;
 }
 
+void hashmap_print(Hashmap* hashmap) {
+	for (int i = 0; i < hashmap->size; i++) {
+		if (hashmap->hm != NULL) {
+			printf(", %s: %s ", hashmap->hm->key, print_schema(hashmap->hm->value));
+		}
+	}
+}
+
 #endif

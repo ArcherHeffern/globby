@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdint.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/uio.h>
@@ -13,6 +14,9 @@
 Protocol: list of entries: type (2 bits)
 */
 
+#define SCHEMA 0x1
+#define ENTRY 0x2
+
 #define EXT_SUCCESS 0
 #define EXT_ERR_OPEN 1
 #define BUFSIZE 1024
@@ -20,7 +24,6 @@ Protocol: list of entries: type (2 bits)
 
 char* filename = NULL;
 Hashmap *name_map = NULL;
-IntArray *num_map = NULL;
 
 char *META_COMMAND_NOT_FOUND = "Meta command not found\n";
 char *OPEN_FILE_MSG = "Use .open to create a database\n";
@@ -61,40 +64,46 @@ void handle_metacommand(char* command, char** tokens) {
 
 
 int open_database(char* db_name) {
+	int fd;
+    int i;
+    int n_read;
+    int schema_size;
+	int type;
+	int size;
+    char buffer[BUFSIZE];
+    Schema *schema;
+
     filename = db_name;
     name_map = hashmap_init();
-    num_map = int_array_init(8);
-    // Store schemas: schema_name: schema_format + schema bit
-    char buffer[BUFSIZE];
-    int fd = open(filename, O_RDONLY|O_CREAT);
+    fd = open(filename, O_RDONLY|O_CREAT);
     if (fd <= 0) {
         perror("Open");
         exit(EXT_ERR_OPEN);
     }
-
-    int n_read;
-    int schema_size;
-    Schema *schema;
     while (1) {
-        if ((n_read = read(fd, buffer, 1)) <= 0) {
+        if ((n_read = read(fd, buffer, 2)) <= 0) {
             break;
         }
-        if (buffer[0] == 0) {
-            schema = parse_schema(fd);
-            int_array_insert(num_map, schema);
-            hashmap_insert(name_map, schema->name, schema);
-        } else {
-            schema_size = int_array_get(num_map, buffer[0])->size;
-            lseek(fd, schema_size, SEEK_CUR);
-            // Continue
-        }
+		if (n_read != 2) {
+			fprintf(stderr, "Expected 2 bytes in header but found %d\n", n_read);
+			exit(1);
+		}
+		type = buffer[0];
+		size = buffer[1];
+		switch (type) {
+			case ENTRY:
+				lseek(fd, size + 1, SEEK_CUR);
+				continue;
+			case SCHEMA:
+				schema = parse_schema(fd);
+				hashmap_insert(name_map, schema->name, schema);
+				break;
+			default:
+				fprintf(stderr, "Expected 0|1 when parsing entry type but found %\n", type);
+				exit(1);
+		}
     }
-    // Print Name and num map
-    int i;
-    for (i = 0; i < num_map->size; i++) {
-        schema = int_array_get(num_map, i);
-        print_schema(schema);
-    }
+	hashmap_print(name_map);
     return 1;
 }
 

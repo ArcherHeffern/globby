@@ -20,3 +20,4 @@ void hashmap_free(Hashmap *hm);
 
 Schema* hashmap_get(Hashmap *hashmap, char* key);
 void hashmap_insert(Hashmap* hashmap, char* key, Schema *value);
+void hashmap_print(Hashmap* hashmap);
