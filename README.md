@@ -2,21 +2,27 @@
 size (bytes)	| field 	| purpose	
 -- 				| --		| --
 1				| type 		| Set to either 1 or 2 to signify if field is a schema or entry
-1				| bsize		| Size of body in bytes (max 255)
 UNKNOWN			| body		| Body - Either Schema or Entry
 
 ## Schema
 size (bytes)	| field 	| purpose
 -- 				| -- 		| -- 
+1				| ssize		| Size of the schema excluding packet type in bytes (max 255)
 NULL TERMINATED | sname		| Schema name
-4				| fnum		| Number of fields
 1				| dtype		| Type of a field - See Data Types Value Field Below
 NULL TERMINATED	| fname		| Field name
+1				| end		| Final Null terminator marks the end of a schema. Design Note: Value of this field (NULL TERMINATOR) Can't conflict with dtype options
 
 ## Entry
+Notes: When parsing, assuming you previously extracted the schema, you should already know:
+- The number of fields
+- The size of each field
+- The size of the entire entry
+As such, field_num, null terminator, and entry size fields are omitted
+
 size (bytes)	| field 	| purpose
 -- 				| -- 		| -- 
-NULL TERMINATED | sname		| Name of schmea this entry belongs to
+1				| sid		| Number of schema, in order of appearance in the database file. Starting at value 0
 See Schema		| value		| Values of entry - See schmea for number and types of fields
 
 ## Data Types
@@ -30,7 +36,7 @@ NULL TERMINATED	| 0x03		| STRING			| Null terminated String
 ## Grammar
 Append only database
 
-<database> = <packet>*
+<database> = <packet>* NULL_TERMINATOR
 <packet> = <schema> | <entry>
 <schema> = "0" name_size (1 byte) name num_fields <schema_fields>+
 <schema_fields> = field_name_size field_name field_datatype
