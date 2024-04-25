@@ -62,14 +62,6 @@ with open(TESTFILE, "wb+") as f:
 		(INT, "age"),
 		(CHAR, "gender")
 	])
-	write_schema("Computer", [
-		(INT, "Version"),
-		(STRING, "Owner"),
-		(INT, "Age (years)")
-	])
-	write_entry(0, ["Tim", 18, 'M'])
-	write_entry(0, ["Jon", 24, 'M'])
-	write_entry(0, ["Jenny", 34, 'F'])
 	write_bytes(NULL_TERMINATOR)
 		
 
@@ -140,3 +132,14 @@ with open(TESTFILE, 'rb') as f:
 			exit(1)
 	print(f"Schemas: {schemas}")
 	print(f"Fields: {entries}")
+"""
+	write_schema("Computer", [
+		(INT, "Version"),
+		(STRING, "Owner"),
+		(INT, "Age (years)")
+	])
+	write_entry(0, ["Tim", 18, 'M'])
+	write_entry(0, ["Jon", 24, 'M'])
+	write_entry(0, ["Jenny", 34, 'F'])
+
+"""

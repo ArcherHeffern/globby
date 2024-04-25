@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,119 +7,125 @@
 #include <sys/uio.h>
 #include "types.h"
 
-enum Type type_mapping[3] = {Bool, Int, Str};
-
-char* type_to_string(enum Type type) {
+char* type_to_string(Type type) {
     switch (type) {
-        case Bool:
-            return "Bool"; 
-        case Int:
-            return "Int"; 
-        case Str: 
-            return "Str";
+        case CHAR:
+            return "CHAR"; 
+        case INT:
+            return "INT"; 
+        case STRING: 
+            return "STRING";
         default:
             printf("Type %u not found\n", type);
             return NULL;
     }
 }
 
-Field* field_init(char* name, enum Type datatype) {
+Field* field_init(char* name, Type datatype) {
     // Assumes name is already malloced
     Field *field = malloc(sizeof(Field));
-    field->datatype = datatype;
-    field->name = name;
+    field->dtype = datatype;
+    field->fname = name;
     return field; 
 }
 
 void field_free(Field *field) {
-    free(field->name);
+    free(field->fname);
     free(field);
 }
 
 
 void print_schema(Schema *schema) {
-    printf("%s:%d bytes:%d fields (", schema->name, schema->size, schema->num_fields);
+    printf("%s:%d fields (", schema->sname, schema->ssize);
     int i;
     Field *curr_field;
-    if (schema->num_fields == 0) {
+    if (schema->fnum == 0) {
         printf(")\n");
         return;
     }
     curr_field = schema->fields[0];
-    printf("%s: %s", curr_field->name, type_to_string(curr_field->datatype));
-    for (i = 1; i < schema->num_fields; i++) {
+    printf("%s: %s", curr_field->fname, type_to_string(curr_field->dtype));
+    for (i = 1; i < schema->fnum; i++) {
         curr_field = schema->fields[i];
-        printf(", %s: %s", curr_field->name, type_to_string(curr_field->datatype));
+        printf(", %s: %s", curr_field->fname, type_to_string(curr_field->dtype));
     }
     printf(")\n");
 }
 
+typedef struct scanner {
+	int curr;
+	uint8_t* str;
+} Scanner;
 
-Schema* parse_schema(int fd) {
-    // Assume the schema bit has already been read
-    // Assume the file is formatted correctly: Thus no error handling
-    int i;
-    char buffer[BUFSIZE];
-    int name_len;
-    char* name;
-    int num_fields;
-    Field **fields;
-    char *field_name;
-    enum Type datatype;
-
-    name_len = read_str(fd, buffer, &name);
-
-    read(fd, buffer, 1);
-    num_fields = (int)buffer[0];
-
-    fields = malloc(sizeof(Field*) * num_fields);
-    for (i = 0; i < num_fields; i++) {
-        name_len = read_str(fd, buffer, &field_name);
-        printf("%s: Length: %d\n", field_name, name_len);
-        read(fd, buffer, 1);
-        datatype = type_mapping[buffer[0]];
-        fields[i] = field_init(field_name, datatype);
-    }
-    return schema_init(name, num_fields, fields);
+int consume_next(Scanner *s) {
+	return s->str[s->curr++];
 }
 
-Schema* schema_init(char* name, int num_fields, Field **fields) {
+uint8_t* read_str(Scanner *s) {
+	int n = 0;
+	while (s->str[s->curr + n] != NULL_TERMINATOR) {
+		n++;
+	}
+	char* o = malloc(n);
+	for (int i = 0; i < n; i++) {
+		o[i] = s->str[s->curr + i];
+	}
+	s->curr+= n;
+	return o;
+}
+
+Schema* parse_schema(uint8_t* buffer, uint8_t ssize) {
+    // Assume the file is formatted correctly: Thus no error handling
+    int i;
+    int name_len;
+    uint8_t* name;
+    int fnum;
+    Field **fields;
+    char *field_name;
+    Type datatype;
+
+	Scanner s = { 0, buffer };
+
+    name = read_str(&s);
+	printf("%s\n", name);
+	exit(0);
+
+	datatype = consume_next(&s);
+	while (datatype != NULL_TERMINATOR) {
+		fnum += 1;
+		field_name = read_str(&s);
+        fields[i] = field_init(field_name, datatype);
+    }
+    return schema_init(name, ssize, fnum, fields);
+}
+
+Schema* schema_init(char* name, uint8_t ssize, uint8_t fnum, Field **fields) {
     // Assume everything has already been malloced
     int i;
     Schema *schema; 
     int size;
 
     schema = malloc(sizeof(Schema));
-    schema->name = name;
-    schema->num_fields = num_fields;
+	schema->ssize = ssize;
+    schema->sname = name;
+	schema->fnum = fnum;
     schema->fields = fields;
 
-    size = 0;
-    for (i = 0; i < num_fields; i++) {
-        size += fields[i]->datatype;
-    }
-    schema->size = size;
     return schema;
 }
 
 void schema_free(Schema *schema) {
-    free(schema->name);
+    free(schema->sname);
     int i;
-    for (i = 0; i < schema->num_fields; i++) {
+    for (i = 0; i < schema->fnum; i++) {
         field_free(schema->fields[i]);
     }
     free(schema);
 }
 
-int read_str(int fd, char* buffer, char** str) {
-    int str_size; 
-    char* tmp_str;
-    read(fd, buffer, 1);
-    str_size = buffer[0];
-    tmp_str = malloc(str_size + 1);
-    read(fd, buffer, str_size);
-    buffer[str_size] = 0;
-    strcpy(tmp_str, buffer);
-    *str = tmp_str;
-    return str_size;
+int main() {
+	// Size and Packet type are omitted
+	uint8_t test[] = {0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x00, 0x03, 0x6e, 0x61, 0x6d, 0x65, 0x00, 0x02,0x61, 0x67, 0x65, 0x00, 0x01, 0x67, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x00, 0x00, 0x00};
+	Schema *schema = parse_schema(test, 30);
+	print_schema(schema);
 }

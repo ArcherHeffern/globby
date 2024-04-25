@@ -48,6 +48,8 @@ Append only database
 3. Python bit/byte operators (int.to_bytes, int.from_bytes, bytes, open(file, "rb"), str.encode(), bytes.decode() 
 4. Endianness
 5. C memory management
+6. hexdump uses your computers default architecture - which is apparently little endian. Caused error creating test data since database is big endian
+7. Don't coerce small type to large type for arrays - Indexing will skip entries
 ```c
 	// Bad? 
 	*arr->array[arr->size++] = schema;

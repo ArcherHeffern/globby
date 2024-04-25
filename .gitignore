@@ -4,3 +4,5 @@ database
 test
 test.c
 test.bin
+types
+*.dSYM

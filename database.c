@@ -23,7 +23,6 @@ Protocol: list of entries: type (2 bits)
 #define INPUTBUFSIZE 64
 
 char* filename = NULL;
-Hashmap *name_map = NULL;
 
 char *META_COMMAND_NOT_FOUND = "Meta command not found\n";
 char *OPEN_FILE_MSG = "Use .open to create a database\n";
@@ -72,9 +71,9 @@ int open_database(char* db_name) {
 	int size;
     char buffer[BUFSIZE];
     Schema *schema;
+	intArray **schema_array = int_array_init(8)
 
     filename = db_name;
-    name_map = hashmap_init();
     fd = open(filename, O_RDONLY|O_CREAT);
     if (fd <= 0) {
         perror("Open");
@@ -89,14 +88,17 @@ int open_database(char* db_name) {
 			exit(1);
 		}
 		type = buffer[0];
-		size = buffer[1];
+		next = buffer[1];
 		switch (type) {
 			case ENTRY:
+				size = schmea_array[next]->size;
 				lseek(fd, size + 1, SEEK_CUR);
 				continue;
 			case SCHEMA:
-				schema = parse_schema(fd);
-				hashmap_insert(name_map, schema->name, schema);
+				read(fd, buffer, ssize);
+				schema = parse_schema(buffer, ssize);
+				int_array_insert(schema_array, schema);
+				
 				break;
 			default:
 				fprintf(stderr, "Expected 0|1 when parsing entry type but found %\n", type);
